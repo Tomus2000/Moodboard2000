@@ -123,10 +123,40 @@ st.divider()
 st.subheader("API Configuration")
 st.markdown("Configure OpenAI API settings.")
 
-# Check API key status (also check at runtime for Streamlit secrets)
+# Check API key status - check multiple sources
 from core.config import get_config
+
+# Method 1: Check Streamlit secrets directly
+streamlit_secret_key = None
+try:
+    if hasattr(st, 'secrets') and st.secrets:
+        try:
+            streamlit_secret_key = st.secrets.get("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+            if not streamlit_secret_key:
+                try:
+                    streamlit_secret_key = st.secrets["OPENAI_API_KEY"]
+                except (KeyError, TypeError):
+                    pass
+        except Exception:
+            pass
+except Exception:
+    pass
+
+# Method 2: Check via get_config
 runtime_api_key = get_config("OPENAI_API_KEY", "")
-api_key_set = bool(OPENAI_API_KEY and OPENAI_API_KEY.strip()) or bool(runtime_api_key and runtime_api_key.strip())
+
+# Method 3: Check module-level constant
+module_key = OPENAI_API_KEY if OPENAI_API_KEY else ""
+
+# Determine if any key is set
+api_key_set = bool(
+    (streamlit_secret_key and str(streamlit_secret_key).strip()) or
+    (runtime_api_key and runtime_api_key.strip()) or
+    (module_key and module_key.strip())
+)
+
+# Get the actual key value for display (use the first available)
+actual_key = streamlit_secret_key or runtime_api_key or module_key
 
 col1, col2 = st.columns(2)
 
@@ -135,13 +165,21 @@ with col1:
     if api_key_set:
         st.success(f"**API Key Status:** ✅ Configured")
         # Show first and last 4 chars for verification (safely)
-        if runtime_api_key:
-            masked_key = f"{runtime_api_key[:4]}...{runtime_api_key[-4:]}" if len(runtime_api_key) > 8 else "***"
-        elif OPENAI_API_KEY:
-            masked_key = f"{OPENAI_API_KEY[:4]}...{OPENAI_API_KEY[-4:]}" if len(OPENAI_API_KEY) > 8 else "***"
-        else:
-            masked_key = "***"
-        st.caption(f"Key: {masked_key}")
+        if actual_key:
+            key_str = str(actual_key).strip()
+            if len(key_str) > 8:
+                masked_key = f"{key_str[:4]}...{key_str[-4:]}"
+            else:
+                masked_key = "***"
+            st.caption(f"Key preview: {masked_key}")
+            
+            # Show source
+            if streamlit_secret_key:
+                st.caption("📦 Source: Streamlit Cloud Secrets")
+            elif runtime_api_key:
+                st.caption("📦 Source: Environment Variable")
+            else:
+                st.caption("📦 Source: Module Config")
     else:
         st.error("**API Key Status:** ❌ Not configured")
         st.markdown("""

@@ -25,36 +25,66 @@ def get_client() -> Optional[OpenAI]:
     """Get OpenAI client if API key is available. Checks Streamlit secrets first, then env vars."""
     api_key = None
     
-    # First, try Streamlit secrets (for Streamlit Cloud deployment)
-    # Streamlit Cloud secrets are accessed via st.secrets dictionary
+    # Try multiple methods to get the API key from Streamlit secrets
     try:
         import streamlit as st
-        if hasattr(st, 'secrets') and st.secrets:
+        
+        # Method 1: Direct bracket access (most common)
+        if hasattr(st, 'secrets'):
             try:
-                # Primary method: bracket notation (most reliable for Streamlit Cloud)
-                api_key = st.secrets["OPENAI_API_KEY"]
-            except (KeyError, TypeError, AttributeError):
-                try:
-                    # Fallback: .get() method
-                    api_key = st.secrets.get("OPENAI_API_KEY")
-                except (AttributeError, TypeError):
-                    pass
+                secrets = st.secrets
+                if secrets:
+                    # Try bracket notation first
+                    try:
+                        if "OPENAI_API_KEY" in secrets:
+                            api_key = secrets["OPENAI_API_KEY"]
+                    except (TypeError, AttributeError):
+                        pass
+                    
+                    # If not found, try .get() method
+                    if not api_key and hasattr(secrets, 'get'):
+                        api_key = secrets.get("OPENAI_API_KEY")
+                    
+                    # If still not found, try attribute access
+                    if not api_key and hasattr(secrets, 'OPENAI_API_KEY'):
+                        api_key = getattr(secrets, 'OPENAI_API_KEY')
+            except (KeyError, AttributeError, TypeError):
+                pass
     except (ImportError, RuntimeError, AttributeError):
-        # Not in Streamlit context or secrets not available
         pass
     
     # If no key from Streamlit secrets, check environment variables (local dev)
     if not api_key:
-        from core.config import get_config
-        api_key = get_config("OPENAI_API_KEY", "")
+        try:
+            import os
+            api_key = os.getenv("OPENAI_API_KEY", "")
+        except Exception:
+            pass
+    
+    # Also try get_config as a fallback
+    if not api_key:
+        try:
+            from core.config import get_config
+            api_key = get_config("OPENAI_API_KEY", "")
+        except Exception:
+            pass
     
     # Validate and clean the key
     if api_key:
         api_key = str(api_key).strip()
-        if api_key and api_key != "" and api_key.lower() != "none":
+        # Remove quotes if present
+        if api_key.startswith('"') and api_key.endswith('"'):
+            api_key = api_key[1:-1]
+        if api_key.startswith("'") and api_key.endswith("'"):
+            api_key = api_key[1:-1]
+        api_key = api_key.strip()
+        
+        # Validate it's not empty and looks like an API key
+        if api_key and api_key != "" and api_key.lower() != "none" and len(api_key) > 10:
             try:
                 return OpenAI(api_key=api_key)
-            except Exception:
+            except Exception as e:
+                # If there's an error creating the client, return None
                 return None
     
     return None

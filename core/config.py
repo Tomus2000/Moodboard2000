@@ -19,25 +19,47 @@ def get_config(key: str, default: str = "") -> str:
     # Try Streamlit secrets first (for Streamlit Cloud deployment)
     try:
         import streamlit as st
-        if hasattr(st, 'secrets') and st.secrets:
-            try:
-                # Streamlit secrets can be accessed like a dictionary
-                # Try .get() method first (safer)
-                if hasattr(st.secrets, 'get'):
-                    value = st.secrets.get(key)
-                    if value:
-                        return str(value).strip()
-                
-                # Try bracket notation
+        if hasattr(st, 'secrets'):
+            secrets = st.secrets
+            if secrets:
                 try:
-                    value = st.secrets[key]
-                    if value:
-                        return str(value).strip()
-                except (KeyError, TypeError, AttributeError):
+                    # Try multiple access methods
+                    # Method 1: Check if key exists and use bracket notation
+                    if hasattr(secrets, '__contains__') and key in secrets:
+                        value = secrets[key]
+                        if value:
+                            val_str = str(value).strip()
+                            if val_str:
+                                return val_str
+                    
+                    # Method 2: Use .get() method
+                    if hasattr(secrets, 'get'):
+                        value = secrets.get(key)
+                        if value:
+                            val_str = str(value).strip()
+                            if val_str:
+                                return val_str
+                    
+                    # Method 3: Try attribute access
+                    if hasattr(secrets, key):
+                        value = getattr(secrets, key)
+                        if value:
+                            val_str = str(value).strip()
+                            if val_str:
+                                return val_str
+                    
+                    # Method 4: Try bracket notation directly (might work even if __contains__ fails)
+                    try:
+                        value = secrets[key]
+                        if value:
+                            val_str = str(value).strip()
+                            if val_str:
+                                return val_str
+                    except (KeyError, TypeError, AttributeError):
+                        pass
+                except Exception:
+                    # Any error accessing secrets - continue to env vars
                     pass
-            except Exception:
-                # Any error accessing secrets - continue to env vars
-                pass
     except (ImportError, AttributeError, RuntimeError):
         # Not in Streamlit context - continue to env vars
         pass
