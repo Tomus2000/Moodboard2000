@@ -26,23 +26,24 @@ def get_client() -> Optional[OpenAI]:
     api_key = None
     
     # First, try Streamlit secrets (for Streamlit Cloud deployment)
+    # Streamlit Cloud secrets are accessed via st.secrets dictionary
     try:
         import streamlit as st
-        if hasattr(st, 'secrets'):
+        if hasattr(st, 'secrets') and st.secrets:
             try:
-                # Direct access to Streamlit secrets
-                api_key = st.secrets.get("OPENAI_API_KEY", None)
-                if not api_key:
-                    # Try bracket notation as fallback
-                    api_key = st.secrets["OPENAI_API_KEY"]
-            except (KeyError, AttributeError, TypeError):
-                # Key doesn't exist in secrets
-                pass
+                # Primary method: bracket notation (most reliable for Streamlit Cloud)
+                api_key = st.secrets["OPENAI_API_KEY"]
+            except (KeyError, TypeError, AttributeError):
+                try:
+                    # Fallback: .get() method
+                    api_key = st.secrets.get("OPENAI_API_KEY")
+                except (AttributeError, TypeError):
+                    pass
     except (ImportError, RuntimeError, AttributeError):
         # Not in Streamlit context or secrets not available
         pass
     
-    # If no key from secrets, check environment variables (local dev)
+    # If no key from Streamlit secrets, check environment variables (local dev)
     if not api_key:
         from core.config import get_config
         api_key = get_config("OPENAI_API_KEY", "")
@@ -50,7 +51,7 @@ def get_client() -> Optional[OpenAI]:
     # Validate and clean the key
     if api_key:
         api_key = str(api_key).strip()
-        if api_key and api_key != "":
+        if api_key and api_key != "" and api_key.lower() != "none":
             try:
                 return OpenAI(api_key=api_key)
             except Exception:
