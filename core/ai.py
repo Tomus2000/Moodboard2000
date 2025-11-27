@@ -23,9 +23,20 @@ else:
 
 def get_client() -> Optional[OpenAI]:
     """Get OpenAI client if API key is available."""
-    if not OPENAI_API_KEY:
+    # Re-check API key at runtime (in case it's loaded from Streamlit secrets)
+    api_key = OPENAI_API_KEY
+    if not api_key:
+        # Try to get it again at runtime (Streamlit context might be available now)
+        from core.config import get_config
+        api_key = get_config("OPENAI_API_KEY", "")
+    
+    if not api_key or api_key.strip() == "":
         return None
-    return OpenAI(api_key=OPENAI_API_KEY)
+    
+    try:
+        return OpenAI(api_key=api_key.strip())
+    except Exception:
+        return None
 
 
 def analyze_text(text: str, tags: Optional[List[str]] = None) -> Dict:

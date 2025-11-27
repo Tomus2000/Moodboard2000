@@ -103,6 +103,145 @@ def apply_gradient_theme():
         body {{
             background: #000000 !important;
         }}
+        
+        /* Expanders - better contrast */
+        .streamlit-expanderHeader {{
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #444444 !important;
+        }}
+        
+        .streamlit-expanderHeader:hover {{
+            background: #2a2a2a !important;
+        }}
+        
+        .streamlit-expanderContent {{
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #444444 !important;
+            border-top: none !important;
+        }}
+        
+        [data-testid="stExpander"] {{
+            background: #1a1a1a !important;
+            border: 1px solid #444444 !important;
+        }}
+        
+        [data-testid="stExpanderDetails"] {{
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+        }}
+        
+        [data-testid="stExpanderToggleIcon"] {{
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Containers */
+        .stContainer {{
+            background: transparent !important;
+        }}
+        
+        /* Dividers */
+        hr {{
+            border-color: #444444 !important;
+        }}
+        
+        /* Captions and small text */
+        .stMarkdown small, small {{
+            color: #b0b0b0 !important;
+        }}
+        
+        /* Subheader text */
+        h3 {{
+            color: #ffffff !important;
+        }}
+        
+        /* Info boxes - better contrast */
+        .stInfo {{
+            background: #1a3a3a !important;
+            border-color: #14b8a6 !important;
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Success boxes */
+        .stSuccess {{
+            background: #1a3a2a !important;
+            border-color: #10b981 !important;
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Warning boxes */
+        .stWarning {{
+            background: #3a2a1a !important;
+            border-color: #f59e0b !important;
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Error boxes */
+        .stError {{
+            background: #3a1a1a !important;
+            border-color: #ef4444 !important;
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Date input */
+        .stDateInput > div > div > input {{
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+        }}
+        
+        /* Multiselect */
+        .stMultiSelect > div > div {{
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+        }}
+        
+        /* Checkbox */
+        .stCheckbox label {{
+            color: #e0e0e0 !important;
+        }}
+        
+        /* Markdown code blocks and inline code */
+        code {{
+            background: #2a2a2a !important;
+            color: #14b8a6 !important;
+            padding: 0.2em 0.4em !important;
+            border-radius: 3px !important;
+        }}
+        
+        pre {{
+            background: #1a1a1a !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #444444 !important;
+        }}
+        
+        /* Progress bars - better visibility */
+        .stProgress > div > div > div {{
+            background-color: #14b8a6 !important;
+        }}
+        
+        /* Strong/bold text */
+        strong, b {{
+            color: #ffffff !important;
+        }}
+        
+        /* Links */
+        a {{
+            color: #14b8a6 !important;
+        }}
+        
+        a:hover {{
+            color: #0fa896 !important;
+        }}
+        
+        /* Ensure all markdown text is visible */
+        .stMarkdown {{
+            color: #e0e0e0 !important;
+        }}
+        
+        .stMarkdown p {{
+            color: #e0e0e0 !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True,

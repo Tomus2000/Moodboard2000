@@ -72,6 +72,13 @@ if st.button("🌊 Check in", type="primary", use_container_width=True):
             # Analyze text
             result = analyze_text(text_to_analyze, tags)
             
+            # Show helpful message if API key is missing
+            if result.get("model_used") == "none" and not result.get("tokens", 0):
+                st.warning(
+                    "💡 **AI analysis unavailable.** Your entry is saved, but to enable AI features, "
+                    "please configure your OpenAI API key in Settings → API Configuration."
+                )
+            
             # Save entry
             entry = add_entry(
                 user_id=user.id,
@@ -169,10 +176,10 @@ if recent_entries:
         with st.container():
             st.markdown(
                 f"""
-                <div style="background: rgba(255,255,255,0.72); border-radius: 12px; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid {color};">
-                    <strong>{emoji} {date}</strong><br>
-                    <small>Mood: {mood_score}/100 | Sentiment: {entry.sentiment:.2f}</small><br>
-                    <p style="margin-top: 0.5rem;">{entry.text[:100]}{"..." if len(entry.text) > 100 else ""}</p>
+                <div style="background: #1a1a1a; border-radius: 12px; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid {color}; color: #e0e0e0;">
+                    <strong style="color: #ffffff; font-size: 1.1em;">{emoji} {date}</strong><br>
+                    <small style="color: #b0b0b0;">Mood: {mood_score}/100 | Sentiment: {entry.sentiment:.2f}</small><br>
+                    <p style="margin-top: 0.5rem; color: #e0e0e0;">{entry.text[:100]}{"..." if len(entry.text) > 100 else ""}</p>
                 </div>
                 """,
                 unsafe_allow_html=True,

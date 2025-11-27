@@ -123,14 +123,54 @@ st.divider()
 st.subheader("API Configuration")
 st.markdown("Configure OpenAI API settings.")
 
+# Check API key status (also check at runtime for Streamlit secrets)
+from core.config import get_config
+runtime_api_key = get_config("OPENAI_API_KEY", "")
+api_key_set = bool(OPENAI_API_KEY and OPENAI_API_KEY.strip()) or bool(runtime_api_key and runtime_api_key.strip())
+
 col1, col2 = st.columns(2)
 
 with col1:
     st.info(f"**Current Model:** {OPENAI_MODEL}")
-    st.info(f"**API Key Set:** {'Yes' if OPENAI_API_KEY else 'No'}")
+    if api_key_set:
+        st.success(f"**API Key Status:** ✅ Configured")
+        # Show first and last 4 chars for verification (safely)
+        if runtime_api_key:
+            masked_key = f"{runtime_api_key[:4]}...{runtime_api_key[-4:]}" if len(runtime_api_key) > 8 else "***"
+        elif OPENAI_API_KEY:
+            masked_key = f"{OPENAI_API_KEY[:4]}...{OPENAI_API_KEY[-4:]}" if len(OPENAI_API_KEY) > 8 else "***"
+        else:
+            masked_key = "***"
+        st.caption(f"Key: {masked_key}")
+    else:
+        st.error("**API Key Status:** ❌ Not configured")
+        st.markdown("""
+        **To enable AI analysis:**
+        
+        **For Local Development:**
+        1. Create a `.env` file in the project root
+        2. Add: `OPENAI_API_KEY=your-key-here`
+        
+        **For Streamlit Cloud:**
+        1. Go to your app settings in Streamlit Cloud
+        2. Click "Secrets" in the sidebar
+        3. Add: `OPENAI_API_KEY = "your-key-here"`
+        4. Save and redeploy
+        """)
 
 with col2:
-    st.warning("⚠️ **Note:** API keys are configured via environment variables (.env file). Changes here require app restart.")
+    if not api_key_set:
+        st.error("⚠️ **AI analysis is disabled**")
+        st.markdown("""
+        Without an API key, entries will still be saved, but you won't get:
+        - Sentiment analysis
+        - Emotion detection
+        - AI-generated summaries
+        - Personalized suggestions
+        """)
+    else:
+        st.success("✅ **AI features enabled**")
+    st.info("💡 Get your API key from: https://platform.openai.com/api-keys")
 
 # Token Usage & Cost Tracking
 st.divider()
