@@ -4,9 +4,13 @@ import os
 from pathlib import Path
 
 # Add the project root to Python path (for Streamlit Cloud)
-project_root = Path(__file__).parent
+# This ensures the 'core' module can be imported
+project_root = Path(__file__).parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
+
+# Change to project root directory (for Streamlit Cloud)
+os.chdir(project_root)
 
 import streamlit as st
 
