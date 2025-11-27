@@ -1,4 +1,13 @@
 """Main Streamlit app for Student Moodmeter."""
+import sys
+import os
+from pathlib import Path
+
+# Add the project root to Python path (for Streamlit Cloud)
+project_root = Path(__file__).parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 import streamlit as st
 
 # Page configuration - MUST be first Streamlit command
@@ -17,6 +26,9 @@ try:
     from core.config import APP_AUTH_PIN
 except ImportError as e:
     st.error(f"Import error: {e}")
+    st.error(f"Python path: {sys.path}")
+    st.error(f"Current directory: {os.getcwd()}")
+    st.error(f"Project root: {project_root}")
     st.stop()
 
 # Apply theme
