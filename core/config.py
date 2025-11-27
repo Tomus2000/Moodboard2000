@@ -12,33 +12,34 @@ def get_config(key: str, default: str = "") -> str:
     Get configuration value from Streamlit secrets (in cloud) or environment variables (local).
     Streamlit Cloud: st.secrets is available
     Local dev: Use os.getenv() with .env file
+    
+    This function checks Streamlit secrets first (for cloud deployment),
+    then falls back to environment variables (for local development).
     """
     # Try Streamlit secrets first (for Streamlit Cloud deployment)
     try:
         import streamlit as st
-        if hasattr(st, 'secrets'):
+        if hasattr(st, 'secrets') and st.secrets:
             try:
-                # Streamlit secrets can be accessed like a dict
-                # Try using .get() method if available (safer)
+                # Streamlit secrets can be accessed like a dictionary
+                # Try .get() method first (safer)
                 if hasattr(st.secrets, 'get'):
-                    value = st.secrets.get(key, None)
-                    if value and str(value).strip():
+                    value = st.secrets.get(key)
+                    if value:
                         return str(value).strip()
-                # Try direct access
-                elif hasattr(st.secrets, '__contains__') and key in st.secrets:
+                
+                # Try bracket notation
+                try:
                     value = st.secrets[key]
-                    if value and str(value).strip():
+                    if value:
                         return str(value).strip()
-                # Try attribute access (for nested secrets)
-                if hasattr(st.secrets, key):
-                    value = getattr(st.secrets, key)
-                    if value and str(value).strip():
-                        return str(value).strip()
-            except (KeyError, AttributeError, TypeError, Exception):
-                # Secrets might not be available or accessed differently
+                except (KeyError, TypeError, AttributeError):
+                    pass
+            except Exception:
+                # Any error accessing secrets - continue to env vars
                 pass
     except (ImportError, AttributeError, RuntimeError):
-        # Not in Streamlit context or secrets not available - continue to env vars
+        # Not in Streamlit context - continue to env vars
         pass
     
     # Fall back to environment variables (local development)

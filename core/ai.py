@@ -22,21 +22,41 @@ else:
 
 
 def get_client() -> Optional[OpenAI]:
-    """Get OpenAI client if API key is available."""
-    # Re-check API key at runtime (in case it's loaded from Streamlit secrets)
-    api_key = OPENAI_API_KEY
+    """Get OpenAI client if API key is available. Checks Streamlit secrets first, then env vars."""
+    api_key = None
+    
+    # First, try Streamlit secrets (for Streamlit Cloud deployment)
+    try:
+        import streamlit as st
+        if hasattr(st, 'secrets'):
+            try:
+                # Direct access to Streamlit secrets
+                api_key = st.secrets.get("OPENAI_API_KEY", None)
+                if not api_key:
+                    # Try bracket notation as fallback
+                    api_key = st.secrets["OPENAI_API_KEY"]
+            except (KeyError, AttributeError, TypeError):
+                # Key doesn't exist in secrets
+                pass
+    except (ImportError, RuntimeError, AttributeError):
+        # Not in Streamlit context or secrets not available
+        pass
+    
+    # If no key from secrets, check environment variables (local dev)
     if not api_key:
-        # Try to get it again at runtime (Streamlit context might be available now)
         from core.config import get_config
         api_key = get_config("OPENAI_API_KEY", "")
     
-    if not api_key or api_key.strip() == "":
-        return None
+    # Validate and clean the key
+    if api_key:
+        api_key = str(api_key).strip()
+        if api_key and api_key != "":
+            try:
+                return OpenAI(api_key=api_key)
+            except Exception:
+                return None
     
-    try:
-        return OpenAI(api_key=api_key.strip())
-    except Exception:
-        return None
+    return None
 
 
 def analyze_text(text: str, tags: Optional[List[str]] = None) -> Dict:
