@@ -1,0 +1,5 @@
+# Prevent secret scanning on .env files
+.env linguist-vendored
+.env diff=gitattributes
+.env merge=ours
+
